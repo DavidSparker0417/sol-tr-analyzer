@@ -1,11 +1,35 @@
 {
-  "name": "sol-tr-analyzer",
+  "name": "blockai-service",
   "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "AI service platform on canxium blockchain network",
+  "main": "index.tx",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DavidSparker0417/BlockAI.git"
   },
-  "author": "",
+  "keywords": [
+    "AI",
+    "canxium",
+    "chatbot",
+    "autdit"
+  ],
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.ts"
+  },
+  "author": "DavidSparker",
   "license": "ISC",
-  "description": ""
+  "bugs": {
+    "url": "https://github.com/DavidSparker0417/BlockAI/issues"
+  },
+  "homepage": "https://github.com/DavidSparker0417/BlockAI#readme",
+  "dependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.9",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "nodemon": "^3.1.4",
+    "typescript": "^5.5.3"
+  }
 }
