@@ -4,6 +4,7 @@ import { SolTrSwapInfo } from "@david-lab/sol-lib/dist/type"
 
 export async function collectRaydiumTransactions(req: any, res:any) {
   const transactions = await solRaydiumGetTransactions()
+  const transactionList:any[] = []
   for(const signature of transactions) {
     let swapInfo = await dbTransactionGet(signature)
     if (!swapInfo) {
@@ -12,7 +13,9 @@ export async function collectRaydiumTransactions(req: any, res:any) {
         await dbTransactionAdd(swapInfo)
     }
     console.log(swapInfo)
+    if (swapInfo)
+      transactionList.push(swapInfo)
   }
 
-  res.status(200).send({message: "ok"})
+  res.status(200).send({message: "ok", data: transactionList})
 }

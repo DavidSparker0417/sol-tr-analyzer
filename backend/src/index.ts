@@ -2,6 +2,7 @@ import express, { Express, Request, Response, json, urlencoded } from "express";
 import dotenv from "dotenv";
 import apiRoute from "./routes/api.route";
 import connectDB from "./db";
+import cors from "cors"
 
 dotenv.config();
 
@@ -10,6 +11,7 @@ connectDB()
 const app: Express = express();
 const port = process.env.PORT || 5081;
 
+app.use(cors({origin: '*'}));
 app.use(urlencoded({ extended: true }));
 app.use(json());
 
