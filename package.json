@@ -1,8 +1,8 @@
 {
-  "name": "blockai-service",
+  "name": "sol-tr-analyzer",
   "version": "1.0.0",
-  "description": "AI service platform on canxium blockchain network",
-  "main": "index.tx",
+  "description": "Solana transaction analyzer",
+  "main": "index.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DavidSparker0417/BlockAI.git"
@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "build": "npx tsc",
-    "start": "node dist/index.js",
+    "start": "ts-node src/index.ts",
     "dev": "nodemon src/index.ts"
   },
   "author": "DavidSparker",
@@ -25,10 +25,12 @@
   },
   "homepage": "https://github.com/DavidSparker0417/BlockAI#readme",
   "dependencies": {
+    "@david-lab/sol-lib": "^1.1.12",
     "@types/express": "^4.17.21",
     "@types/node": "^20.14.9",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "mongoose": "^8.5.3",
     "nodemon": "^3.1.4",
     "typescript": "^5.5.3"
   }

@@ -1,13 +1,19 @@
 import express, { Express, Request, Response, json, urlencoded } from "express";
 import dotenv from "dotenv";
+import apiRoute from "./routes/api.route";
+import connectDB from "./db";
 
 dotenv.config();
 
+connectDB()
+
 const app: Express = express();
-const port = process.env.PORT || 3103;
+const port = process.env.PORT || 5081;
 
 app.use(urlencoded({ extended: true }));
 app.use(json());
+
+app.use('/api/', apiRoute)
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Express server is runnng ...");
