@@ -9,7 +9,7 @@ export default function Home() {
 
   async function fetchTransactions() {
     setFetching(true)
-    const resp = await axios.get(`http://localhost:5081/api/raydium`)
+    const resp = await axios.get(`https://dev.sonexdigital.com/backend/api/raydium`)
     // console.log(`[DAVID] (fetchTransactions) resp =`, resp)
     setTransactions(resp.data.data)
     setFetching(false)
@@ -22,7 +22,7 @@ export default function Home() {
       {
         fetching
           ? <h1>Fetching ...</h1>
-          : <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+          : <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
             <thead>
               <tr>
                 <th>when</th>
