@@ -3,12 +3,12 @@ import dotenv from "dotenv";
 import apiRoute from "./routes/api.route";
 import connectDB from "./db";
 import cors from "cors"
-import { dbSyncTask } from "./middleware/task";
+import { startTasks } from "./middleware/task";
 
 dotenv.config();
 
 connectDB()
-dbSyncTask()
+startTasks()
 
 const app: Express = express();
 const port = process.env.PORT || 5081;
