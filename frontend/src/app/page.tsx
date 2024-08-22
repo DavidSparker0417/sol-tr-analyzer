@@ -2,6 +2,7 @@
 import axios from "axios";
 import Image from "next/image";
 import { useState } from "react";
+import "./style.css";
 
 export default function Home() {
   const [transactions, setTransactions] = useState([])
@@ -16,33 +17,42 @@ export default function Home() {
   }
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div>
-        <button onClick={() => fetchTransactions()}>Get</button>
+      <div id="action_area">
+        <label>Date Range: </label>
+        <input type="calendar" id="txt_start"></input>
+        <label> - </label>
+        <input type="calendar" id="txt_end"></input>
+        <input type="button" id="btn_get_result" onClick={() => fetchTransactions()} value="Get Result"></input>
+        <input type="button" id="btn_view_analyse" value="Analyse"></input>
       </div>
       {
-        fetching
-          ? <h1>Fetching ...</h1>
-          : <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+        <table className="main_table">
             <thead>
               <tr>
-                <th>when</th>
-                <th>who</th>
-                <th>where</th>
-                <th>what</th>
-                <th>how</th>
-                <th>spent</th>
-                <th>recv</th>
+                <th>No</th>
+                <th>Time</th>
+                <th>Wallet ID</th>
+                <th>Plateform</th>
+                <th>Token</th>
+                <th>Action</th>
+                <th>Spent</th>
+                <th>Receive</th>
               </tr>
             </thead>
             <tbody>
               {
-                transactions.map((t: any) => {
+                fetching
+                ? <h1>Fetching Data ...</h1>
+                : 
+                transactions.map((t: any, i: number) => 
+                {
                   return (<tr>
+                    <td>{i}</td>
                     <td>{t.when}</td>
                     <td>{t.who}</td>
                     <td>{t.where}</td>
                     <td>{t.what}</td>
-                    <td>{t.how}</td>
+                    <td class={t.how}>{t.how}</td>
                     <td>{t.sentAsset.amount}</td>
                     <td>{t.rcvAsset.amount}</td>
                   </tr>
