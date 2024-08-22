@@ -27,7 +27,8 @@ export async function dbTransactionGetByDuration(start: number, end: number) {
     }
   };
 
-  const transactions = await TransactionModel.find(query);
+  const transactions = await TransactionModel.find(query)
+    .sort({when: 1});
   // console.log(transactions);
   return transactions
 }
