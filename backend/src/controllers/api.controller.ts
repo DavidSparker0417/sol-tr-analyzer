@@ -66,11 +66,11 @@ export async function queryWalletsSummary(req: any, res:any) {
       wallet,
       numTrades,
       numTokens,
-      totalSpent,
-      totalReceive,
-      profit,
+      totalSpent: totalSpent.toFixed(2),
+      totalReceive: totalReceive.toFixed(2),
+      profit: profit.toFixed(2),
       winRate,
-      roi,
+      roi: roi.toFixed(2),
       tradesPerToken,
       lastTradeTime
     })
