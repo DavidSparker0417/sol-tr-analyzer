@@ -26,7 +26,7 @@ export default function Home() {
     setFetching(true)
     setMode('anal')
     const resp = await axios.get(`https://dev.sonexdigital.com/backend/api/raydium/summary`)
-    console.log(`[DAVID] (fetchTransactions) resp =`, resp)
+    // console.log(`[DAVID] (fetchTransactions) resp =`, resp)
     setSummary(resp.data.data)
     setFetching(false)
 

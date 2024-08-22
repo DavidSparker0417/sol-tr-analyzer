@@ -13,7 +13,7 @@ export async function processSigList(sigList: string[any]) {
     console.log(`[DAVID] processSigList :: (${indexOf(sigList, sig)}/${sigList.length})`)
     if (swapInfo && !await dbBotIsBot(swapInfo.who)) {
       // console.log(`[DAVID] adding data to db sig :`, swapInfo.signature)
-      // await dbTransactionAdd(swapInfo)
+      await dbTransactionAdd(swapInfo)
       swapInfoList.push(swapInfo)
     }
   }
@@ -41,13 +41,12 @@ export async function dbSyncTask() {
   let end = curTime
 
   // const swapInfoList = await dbTransactionGetByDuration(start - 3600 * 1000, end)
-  while (false) {
+  while (true) {
     console.log(`[DAVID]------------- fetching from ${start} to ${end} -------------`)
     await solTrQueryTransactions(RAYDIUM_AUTHORITY_V4, processSigList, start, end)
     await sleep(100)
     start = end
     end = getCurrentTimestamp()
-    break
   }
 }
 

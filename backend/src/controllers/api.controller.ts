@@ -25,7 +25,7 @@ export async function queryWalletsSummary(req: any, res:any) {
   if (!start || !end)
   {
     end = getCurrentTimestamp()
-    start = end - 86400 * 1000
+    start = end - 3600 * 1000
   }
   const swapInfoList = await dbTransactionGetByDuration(start, end)
   const tradeCounts = _.countBy(swapInfoList.map((s: SolTrSwapInfo) => s.who));
@@ -66,13 +66,13 @@ export async function queryWalletsSummary(req: any, res:any) {
       wallet,
       numTrades,
       numTokens,
-      totalSpent: totalSpent.toFixed(2),
-      totalReceive: totalReceive.toFixed(2),
+      totalSpent: totalSpent.toFixed(5),
+      totalReceive: totalReceive.toFixed(5),
       profit: profit.toFixed(2),
       winRate,
       roi: roi.toFixed(2),
       tradesPerToken,
-      lastTradeTime
+      lastTradeTime: new Date(lastTradeTime)
     })
   })
   console.log(tradeResult)
