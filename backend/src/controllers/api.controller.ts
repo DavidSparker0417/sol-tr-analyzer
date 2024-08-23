@@ -66,15 +66,15 @@ export async function queryWalletsSummary(req: any, res:any) {
       wallet,
       numTrades,
       numTokens,
-      totalSpent: totalSpent.toFixed(5),
-      totalReceive: totalReceive.toFixed(5),
-      profit: profit.toFixed(2),
+      totalSpent: totalSpent.toFixed(6),
+      totalReceive: totalReceive.toFixed(6),
+      profit: profit.toFixed(6),
       winRate,
       roi: roi.toFixed(2),
       tradesPerToken,
       lastTradeTime: new Date(lastTradeTime)
     })
   })
-  console.log(tradeResult)
+  // console.log(tradeResult)
   res.status(200).send({message: "ok", data: tradeResult})
 }

@@ -7,18 +7,19 @@ import _, { indexOf } from "lodash"
 
 export async function processSigList(sigList: string[any]) {
   console.log(`[DAVID] (processSigList) sigCount =`, sigList.length)
+  
+  // 1. fetching transacition detailes fron onchain
   const swapInfoList: SolTrSwapInfo[] = []
   for (const sig of sigList) {
-    const swapInfo: SolTrSwapInfo | undefined = await solTrSwapInspect(sig)
-    console.log(`[DAVID] processSigList :: (${indexOf(sigList, sig)}/${sigList.length})`)
+    const swapInfo: SolTrSwapInfo|undefined = await solTrSwapInspect(sig)
     if (swapInfo && !await dbBotIsBot(swapInfo.who)) {
       // console.log(`[DAVID] adding data to db sig :`, swapInfo.signature)
-      await dbTransactionAdd(swapInfo)
+      // await dbTransactionAdd(swapInfo)
       swapInfoList.push(swapInfo)
     }
   }
 
-  // bot detection
+  // 2. bot detection
   console.log(`[DAVID] added ${swapInfoList.length} entries to db.`)
   const timestamps = Array.from(new Set(swapInfoList.map((s: SolTrSwapInfo) => s.when.getTime())));
   // console.log(`[DAVID] ++++++++++++++++++++++ timestamps: `, timestamps)
@@ -32,6 +33,14 @@ export async function processSigList(sigList: string[any]) {
     for (const bot of bots) {
       await dbBotAdd(bot)
     }
+  }
+
+  // 3. add to db
+  for(const swapInfo of swapInfoList) {
+    if (await dbBotIsBot(swapInfo.who)) 
+      continue
+    console.log(`[DAVID] ::::::: adding transaction to db : ${swapInfo.signature} `)
+    await dbTransactionAdd(swapInfo)
   }
 }
 
@@ -47,6 +56,7 @@ export async function dbSyncTask() {
     await sleep(100)
     start = end
     end = getCurrentTimestamp()
+    break
   }
 }
 
