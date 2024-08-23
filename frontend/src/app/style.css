@@ -76,6 +76,7 @@ table
 	height: calc(100% - 200px);
 	position: absolute;
 	color: white;
+	display: inline-grid;
 }
 
 table thead
@@ -85,6 +86,7 @@ table thead
 	border-bottom: 2px solid white;
 	font-family: arial !important;
 	font-weight: normal !important;
+	display: table;
 }
 
 table thead th
@@ -96,6 +98,7 @@ table tbody
 {
 	text-align: center;
 	font-size: 12px;
+	overflow-y: auto;
 }
 
 table tbody tr td
@@ -118,9 +121,44 @@ table tbody tr:nth-child(2n)
 	background-color: #484545;
 }
 
+table dl 
+{
+	float: right;
+}
+
+table dl dd
+{
+	width: 30px;
+	height: 30px;
+	border: 1px solid white;
+	float: left;
+	text-align: center;
+	line-height: 30px;
+	margin-right: 10px;
+}
+
 table tbody h1
 {
 	position: absolute;
 	top: 300px;
 	left: calc(50% - 30px);
+}
+
+#tbl_analyse
+{
+	display: none;
+}
+
+tr.navigation
+{
+	position: absolute;
+    width: 100%;
+    height: 50px;
+    bottom: -55px;
+    left: 0px;
+}
+
+tr.navigation td 
+{
+	cursor: pointer;
 }
