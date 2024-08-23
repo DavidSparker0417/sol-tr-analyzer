@@ -9,9 +9,10 @@ export default function Home() {
   const [summary, setSummary] = useState([])
   const [fetching, setFetching] = useState(false)
   const [mode, setMode] = useState('main')
+  const [curPage, setCurPage] = useState(0)
 
   var num_per_page = 100;
-  var navs_arr     = [];
+  var navs_arr = [];
 
   async function fetchTransactions() {
     setFetching(true)
@@ -31,18 +32,10 @@ export default function Home() {
     setMode('anal')
     const resp = await axios.get(`https://dev.sonexdigital.com/backend/api/raydium/summary`)
 
-    console.log(`[DAVID] (fetchTransactions) resp =`, resp)
+    // console.log(`[DAVID] (fetchTransactions) resp =`, resp)
 
-    var num_navs  = Math.ceil(resp.data.data.length / num_per_page);
-    var disp_data = resp.data.data.splice(0, num_per_page);
-
-    for(var i = 0; i < num_navs; i ++)
-    {
-      navs_arr.push(i);
-    }
-
-    setSummary(disp_data)
-
+    var num_navs = Math.ceil(resp.data.data.length / num_per_page);
+    setSummary(resp.data.data)
     setFetching(false)
 
     document.getElementById("tbl_analyse").style.display = "inline-grid";
@@ -83,33 +76,41 @@ export default function Home() {
           {
             fetching
               ? <h1>Fetching Data ...</h1>
-              : summary.map((t: any, i: number) => {
-                return (<tr>
-                  <td width="3%">{i + 1}</td>
-                  <td width="20%">{t.wallet}</td>
-                  <td width="10%">{t.numTrades}</td>
-                  <td width="7%">{t.numTokens}</td>
-                  <td width="9%">{t.totalSpent}</td>
-                  <td width="9%">{t.totalReceive}</td>
-                  <td width="10%">{t.profit}</td>
-                  <td width="5%">{t.winRate}</td>
-                  <td width="7%">{t.roi}</td>
-                  <td width="6%">{t.tradesPerToken}</td>
-                  <td width="10%">{t.lastTradeTime}</td>
-                </tr>
-                )
-              })
+              : summary.slice(
+                curPage * num_per_page,
+                (curPage + 1) * num_per_page > summary.length ? -1 : (curPage + 1) * num_per_page)
+                .map((t: any, i: number) => {
+                  return (<tr>
+                    <td width="3%">{i + 1}</td>
+                    <td width="20%">{t.wallet}</td>
+                    <td width="10%">{t.numTrades}</td>
+                    <td width="7%">{t.numTokens}</td>
+                    <td width="9%">{t.totalSpent}</td>
+                    <td width="9%">{t.totalReceive}</td>
+                    <td width="10%">{t.profit}</td>
+                    <td width="5%">{t.winRate}</td>
+                    <td width="7%">{t.roi}</td>
+                    <td width="6%">{t.tradesPerToken}</td>
+                    <td width="10%">{t.lastTradeTime}</td>
+                  </tr>
+                  )
+                })
           }
-
+          <div></div>
           <tr class="navigation">
             <td colspan="11">
               <dl>
-                <dd>1</dd>
-                <dd>2</dd>
-                <dd>3</dd>
-                <dd>4</dd>
-                <dd>5</dd>
-                <dd>6</dd>
+                {
+                  ((new Array(Math.ceil(summary.length / num_per_page))).fill(0))
+                    .map((a, i) =>
+                      <dd key={i}
+                        onClick={({ target }) => {
+                          console.log(`[DAVID] ev =`, target.innerText)
+                          setCurPage(Number(target.innerText))
+                        }}>
+                        {i}
+                      </dd>)
+                }
               </dl>
             </td>
           </tr>
