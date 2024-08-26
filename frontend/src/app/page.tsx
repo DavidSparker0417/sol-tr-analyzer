@@ -17,13 +17,12 @@ export default function Home() {
   async function fetchTransactions() {
     setFetching(true)
     setMode('main')
-    const resp = await axios.get(`https://dev.sonexdigital.com/backend/api/raydium`)
+    // const resp = await axios.get(`https://dev.sonexdigital.com/backend/api/raydium`)
     // console.log(`[DAVID] (fetchTransactions) resp =`, resp)
     setTransactions(resp.data.data)
     setFetching(false)
 
     document.getElementById("tbl_analyse").style.display = "none";
-    document.getElementById("tbl_transaction").style.display = "inline-grid";
     document.getElementById("div_time_range").style.display = "block";
   }
 
@@ -38,9 +37,24 @@ export default function Home() {
     setSummary(resp.data.data)
     setFetching(false)
 
+    document.getElementById("search_area").style.display = "block";
     document.getElementById("tbl_analyse").style.display = "inline-grid";
-    document.getElementById("tbl_transaction").style.display = "none";
+
+    document.getElementById("div_transaction").style.display = "none";
     document.getElementById("div_time_range").style.display = "none";
+
+    document.getElementById("btn_view_analyse").style.display = "none";
+    document.getElementById("btn_back_trans").style.display = "block";
+  }
+
+  async function backToTransaction() {
+    document.getElementById("btn_view_analyse").style.display = "block";
+    document.getElementById("btn_back_trans").style.display = "none";
+    document.getElementById("search_area").style.display = "none";
+
+    document.getElementById("tbl_analyse").style.display = "none";
+    document.getElementById("div_time_range").style.display = "block";
+    document.getElementById("div_transaction").style.display = "block";
   }
 
   return (
@@ -51,9 +65,16 @@ export default function Home() {
           <input type="calendar" id="txt_start"></input>
           <label> - </label>
           <input type="calendar" id="txt_end"></input>
-          <input type="button" id="btn_get_result" onClick={() => fetchTransactions()} value="Get Result"></input>
+          <input type="button" id="btn_get_result" onClick={() => fetchTransactions()} value="Fetch Data"></input>
         </div>
         <input type="button" id="btn_view_analyse" onClick={() => fetchAnalyze()} value="Analyse"></input>
+        <input type="button" id="btn_back_trans" onClick={() => backToTransaction()} value="Back"></input>
+      </div>
+
+      <div id="search_area">
+        <label>Wallet Address : </label>
+        <input type="text" id="txt_wallet"></input>
+        <input type="button" id="btn_search_wallet" value="Search"></input>
       </div>
 
       <table className="main_table" id="tbl_analyse">
@@ -106,9 +127,17 @@ export default function Home() {
                       <dd key={i}
                         onClick={({ target }) => {
                           console.log(`[DAVID] ev =`, target.innerText)
+                          console.log(target);
+
+                          var prev_sel = document.getElementsByClassName("nav_selected");
+
+                          if(prev_sel[0])
+                            prev_sel[0].classList.remove("nav_selected");
+
+                          target.classList.add("nav_selected");
                           setCurPage(Number(target.innerText))
                         }}>
-                        {i}
+                        {i + 1}
                       </dd>)
                 }
               </dl>
@@ -116,40 +145,21 @@ export default function Home() {
           </tr>
         </tbody>
       </table>
-      <table className="main_table" id="tbl_transaction">
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Time</th>
-            <th>Wallet ID</th>
-            <th>Plateform</th>
-            <th>Token</th>
-            <th>Action</th>
-            <th>Spent</th>
-            <th>Receive</th>
-          </tr>
-        </thead>
-        <tbody>
-          {
-            fetching
-              ? <h1>Fetching Data ...</h1>
-              :
-              transactions.map((t: any, i: number) => {
-                return (<tr>
-                  <td>{i}</td>
-                  <td>{t.when}</td>
-                  <td>{t.who}</td>
-                  <td>{t.where}</td>
-                  <td>{t.what}</td>
-                  <td class={t.how}>{t.how}</td>
-                  <td>{t.sentAsset.amount}</td>
-                  <td>{t.rcvAsset.amount}</td>
-                </tr>
-                )
-              })
-          }
-        </tbody>
-      </table>
+      <div id="div_transaction">
+      {
+        fetching
+        ? <div id="status_area">
+          <div id="detail_info">
+            <span>Fetching : </span><span>35% (5,305 / 123,506)</span> 
+            <span id="label_remain_time">12:23:52</span>
+          </div>
+          <div id="progress_fetching">
+            <div id="progress_fill"></div>
+          </div>
+        </div>
+        : <h1>Please click on Fetch button to get data</h1>
+      }
+      </div>
     </main>
   )
 }
