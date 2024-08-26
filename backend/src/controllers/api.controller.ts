@@ -1,7 +1,9 @@
-import { getCurrentTimestamp, RAYDIUM_AUTHORITY_V4, solTrQueryTransactions, solTrSwapInspect } from "@david-lab/sol-lib"
+import { getCurrentTimestamp, JUPITER, PUMPFUN, RAYDIUM_AUTHORITY_V4, solTrQueryTransactions, solTrSwapInspect } from "@david-lab/sol-lib"
 import { dbTransactionAdd, dbTransactionGet, dbTransactionGetByDuration } from "../db/service/db.transaction"
 import { SolTrSwapInfo } from "@david-lab/sol-lib/dist/type"
 import _, { indexOf } from "lodash"
+import { ok } from "assert"
+import { processJupiterfunSigList, processPumpfunSigList, processRaydiumSigList } from "../middleware/task"
 
 export async function collectRaydiumTransactions(req: any, res:any) {
   const {from, to} = req.query
@@ -54,14 +56,14 @@ export async function queryWalletsSummary(req: any, res:any) {
     const roi = (totalReceive / totalSpent) * 100
 
     let winRate = 0
-    let totalTrad = 0
+    let totalTrade = 0
     const tokenTradesCount = _.countBy(tradeList.map((t: SolTrSwapInfo) => t.what))
     Object.keys(tokenTradesCount).forEach((token: string) => {
       // tradeList.filter((s: SolTrSwapInfo) => s.what === token)
     })
     const numTokens = Object.keys(tokenTradesCount).length
     const tradesPerToken = (tradeCounts[wallet] / numTokens).toFixed(2)
-
+    
     tradeResult.push({
       wallet,
       numTrades,
@@ -77,4 +79,25 @@ export async function queryWalletsSummary(req: any, res:any) {
   })
   // console.log(tradeResult)
   res.status(200).send({message: "ok", data: tradeResult})
+}
+
+export async function fetchTransactions(req: any, res: any) {
+  const {from, to} = req.query
+  console.log(`[DAVID](API-REQ) fetchTransactions :: query = ${JSON.stringify(req.query)}`)
+  let start = Number(from), end = Number(to)
+  if (!start || !end)
+  {
+    end = getCurrentTimestamp()
+    start = end - 20 * 1000
+  }
+
+  const jupiterTrCount = await solTrQueryTransactions(JUPITER, processJupiterfunSigList, start, end)
+  console.log(`[DAVID](API-REQ) ------------------ fetchTransactions :: jupiter transaction count = ${jupiterTrCount} --------------`)
+  const pumpfunTrCount = await solTrQueryTransactions(PUMPFUN, processPumpfunSigList, start, end)
+  console.log(`[DAVID](API-REQ) ------------------ fetchTransactions :: pumpfun transaction count = ${pumpfunTrCount} --------------`)
+  const raydiumTrCount = await solTrQueryTransactions(RAYDIUM_AUTHORITY_V4, processRaydiumSigList, start, end)
+  console.log(`[DAVID](API-REQ) ------------------ fetchTransactions :: raydium transaction count = ${raydiumTrCount} --------------`)
+  const totalTrCount = jupiterTrCount + pumpfunTrCount + raydiumTrCount
+
+  res.status(200).send({message: "ok", trCount: totalTrCount})
 }

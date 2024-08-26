@@ -36,6 +36,7 @@ export default function Home() {
 
     var num_navs = Math.ceil(resp.data.data.length / num_per_page);
     setSummary(resp.data.data)
+    setCurPage(0)
     setFetching(false)
 
     document.getElementById("tbl_analyse").style.display = "inline-grid";

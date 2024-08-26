@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { collectRaydiumTransactions, queryWalletsSummary } from "../controllers/api.controller";
+import { collectRaydiumTransactions, fetchTransactions, queryWalletsSummary } from "../controllers/api.controller";
 
 const apiRoute = Router()
 
 apiRoute.get('/raydium', collectRaydiumTransactions)
 
 apiRoute.get('/raydium/summary', queryWalletsSummary)
+apiRoute.get('/fetch', fetchTransactions)
 
 export default apiRoute
