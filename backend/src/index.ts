@@ -4,6 +4,7 @@ import apiRoute from "./routes/api.route";
 import connectDB from "./db";
 import cors from "cors"
 import { startTasks } from "./middleware/task";
+import { wssCreate } from "./middleware/websocket";
 
 dotenv.config();
 
@@ -12,6 +13,8 @@ startTasks()
 
 const app: Express = express();
 const port = process.env.PORT || 5081;
+
+wssCreate(app)
 
 app.use(cors({origin: '*'}));
 app.use(urlencoded({ extended: true }));

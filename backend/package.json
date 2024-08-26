@@ -23,19 +23,22 @@
   "bugs": {
     "url": "https://github.com/DavidSparker0417/BlockAI/issues"
   },
-  "homepage": "https://github.com/DavidSparker0417/BlockAI#readme",
+  "homepage": "https://dev.sonexdigital.com/",
   "dependencies": {
-    "@david-lab/sol-lib": "^1.1.31",
+    "@david-lab/sol-lib": "^1.1.48",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/lodash": "^4.17.7",
     "@types/node": "^20.14.9",
+    "@types/ws": "^8.5.12",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "http": "^0.0.1-security",
     "lodash": "^4.17.21",
     "mongoose": "^8.5.3",
     "nodemon": "^3.1.4",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "ws": "^8.18.0"
   }
 }
