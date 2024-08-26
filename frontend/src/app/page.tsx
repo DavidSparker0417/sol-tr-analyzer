@@ -1,42 +1,71 @@
 "use client"
 import axios from "axios";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./style.css";
+import { SERVER_URL } from "@/constants";
+import useTrFetching from "@/hooks/tr-fetch";
+
+function formatTimeFromMicroseconds(microseconds: number): string {
+  // Convert microseconds to seconds
+  const totalSeconds = Math.floor(microseconds / 1_000);
+
+  // Calculate hours, minutes, and seconds
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  // Format the result as hh:mm:ss
+  const formattedHours = String(hours).padStart(2, '0');
+  const formattedMinutes = String(minutes).padStart(2, '0');
+  const formattedSeconds = String(seconds).padStart(2, '0');
+
+  return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+}
 
 export default function Home() {
-  const [transactions, setTransactions] = useState([])
   const [summary, setSummary] = useState([])
   const [fetching, setFetching] = useState(false)
-  const [mode, setMode] = useState('main')
   const [curPage, setCurPage] = useState(0)
-
+  const [totalTrCount, setTotalTrCount] = useState(0)
+  const { fetchedCount, resetFetchCount, transaction } = useTrFetching()
+  const [searchWallet, setSearchWallet] = useState("")
+  let countDownIntervalId: any
   var num_per_page = 100;
-  var navs_arr = [];
+
+  const searchedResult = useMemo(() => {
+    console.log(summary[0].wallet)
+    return searchWallet ? summary.filter((s: any) => s.wallet.includes(searchWallet)) : summary
+  }, [searchWallet, summary])
+
+  useEffect(() => {
+    if (!fetchedCount || !totalTrCount)
+      return
+    if (fetchedCount === totalTrCount) {
+      setFetching(false)
+      clearInterval(countDownIntervalId)
+    }
+  }, [fetchedCount])
 
   async function fetchTransactions() {
     setFetching(true)
-    setMode('main')
-    // const resp = await axios.get(`https://dev.sonexdigital.com/backend/api/raydium`)
-    // console.log(`[DAVID] (fetchTransactions) resp =`, resp)
-    setTransactions(resp.data.data)
-    setFetching(false)
+    resetFetchCount()
+    setTotalTrCount(0)
+    const resp = await axios.get(`${SERVER_URL}/fetch`)
+    console.log(`[DAVID] (fetchTransactions) resp =`, resp)
+    const trCount = resp.data.trCount
+    setTotalTrCount(trCount)
 
     document.getElementById("tbl_analyse").style.display = "none";
     document.getElementById("div_time_range").style.display = "block";
   }
 
   async function fetchAnalyze() {
-    setFetching(true)
-    setMode('anal')
-    const resp = await axios.get(`https://dev.sonexdigital.com/backend/api/raydium/summary`)
-
+    const resp = await axios.get(`${SERVER_URL}/summary`)
     // console.log(`[DAVID] (fetchTransactions) resp =`, resp)
 
-    var num_navs = Math.ceil(resp.data.data.length / num_per_page);
     setSummary(resp.data.data)
     setCurPage(0)
-    setFetching(false)
 
     document.getElementById("search_area").style.display = "block";
     document.getElementById("tbl_analyse").style.display = "inline-grid";
@@ -74,8 +103,24 @@ export default function Home() {
 
       <div id="search_area">
         <label>Wallet Address : </label>
-        <input type="text" id="txt_wallet"></input>
-        <input type="button" id="btn_search_wallet" value="Search"></input>
+        <input
+          type="text"
+          id="txt_wallet"
+          value={searchWallet}
+          onChange={({ target }) => {
+            setSearchWallet(target.value)
+          }}
+        />
+        <input
+          type="button"
+          id="btn_search_wallet"
+          value="Search"
+          onClick={() => {
+            const searchResult = summary.filter((s: any) => s.wallet === searchWallet)
+            console.log(searchResult)
+          }}>
+
+        </input>
       </div>
 
       <table className="main_table" id="tbl_analyse">
@@ -96,43 +141,41 @@ export default function Home() {
         </thead>
         <tbody>
           {
-            fetching
-              ? <h1>Fetching Data ...</h1>
-              : summary.slice(
-                curPage * num_per_page,
-                (curPage + 1) * num_per_page > summary.length ? -1 : (curPage + 1) * num_per_page)
-                .map((t: any, i: number) => {
-                  return (<tr>
-                    <td width="3%">{i + 1}</td>
-                    <td width="20%">{t.wallet}</td>
-                    <td width="10%">{t.numTrades}</td>
-                    <td width="7%">{t.numTokens}</td>
-                    <td width="9%">{t.totalSpent}</td>
-                    <td width="9%">{t.totalReceive}</td>
-                    <td width="10%">{t.profit}</td>
-                    <td width="5%">{t.winRate}</td>
-                    <td width="7%">{t.roi}</td>
-                    <td width="6%">{t.tradesPerToken}</td>
-                    <td width="10%">{t.lastTradeTime}</td>
-                  </tr>
-                  )
-                })
+            searchedResult.slice(
+              curPage * num_per_page,
+              (curPage + 1) * num_per_page > summary.length ? -1 : (curPage + 1) * num_per_page)
+              .map((t: any, i: number) => {
+                return (<tr>
+                  <td width="3%">{i + 1}</td>
+                  <td width="20%">{t.wallet}</td>
+                  <td width="10%">{t.numTrades}</td>
+                  <td width="7%">{t.numTokens}</td>
+                  <td width="9%">{t.totalSpent}</td>
+                  <td width="9%">{t.totalReceive}</td>
+                  <td width="10%">{t.profit}</td>
+                  <td width="5%">{t.winRate}</td>
+                  <td width="7%">{t.roi}</td>
+                  <td width="6%">{t.tradesPerToken}</td>
+                  <td width="10%">{t.lastTradeTime}</td>
+                </tr>
+                )
+              })
           }
           <div></div>
           <tr class="navigation">
             <td colspan="11">
               <dl>
                 {
-                  ((new Array(Math.ceil(summary.length / num_per_page))).fill(0))
+                  ((new Array(Math.ceil(searchedResult.length / num_per_page))).fill(0))
                     .map((a, i) =>
                       <dd key={i}
                         onClick={({ target }) => {
-                          console.log(`[DAVID] ev =`, target.innerText)
-                          console.log(target);
+                          // console.log(`[DAVID] ev =`, target.innerText)
+                          // console.log(target);
 
                           var prev_sel = document.getElementsByClassName("nav_selected");
 
-                          if(prev_sel[0])
+                          if (prev_sel[0])
                             prev_sel[0].classList.remove("nav_selected");
 
                           target.classList.add("nav_selected");
@@ -147,19 +190,26 @@ export default function Home() {
         </tbody>
       </table>
       <div id="div_transaction">
-      {
-        fetching
-        ? <div id="status_area">
-          <div id="detail_info">
-            <span>Fetching : </span><span>35% (5,305 / 123,506)</span> 
-            <span id="label_remain_time">12:23:52</span>
-          </div>
-          <div id="progress_fetching">
-            <div id="progress_fill"></div>
-          </div>
-        </div>
-        : <h1>Please click on Fetch button to get data</h1>
-      }
+        {
+          fetching
+            ? <div id="status_area">
+              <div id="detail_info">
+                <span>Fetching : </span><span>{(fetchedCount * 100 / totalTrCount).toFixed(1)}% ({fetchedCount} / {totalTrCount})</span>
+                <span id="label_remain_time">{formatTimeFromMicroseconds(totalTrCount ? (totalTrCount - fetchedCount) * 100 : 0)}</span>
+              </div>
+              {
+                transaction
+                  ? (<div>
+                    <span>fetching {transaction.signature?.slice(0, 4) + "..." + transaction.signature?.slice(-4) + (transaction.platform ? " on " + transaction.platform : "")} ...</span>
+                  </div>)
+                  : <></>
+              }
+              <div id="progress_fetching">
+                <div id="progress_fill"></div>
+              </div>
+            </div>
+            : <h1>Please click on Fetch button to get data</h1>
+        }
       </div>
     </main>
   )

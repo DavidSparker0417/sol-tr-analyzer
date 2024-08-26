@@ -13,7 +13,15 @@ async function processSigList(sigList: string[any], platform: string) {
   const swapInfoList: SolTrSwapInfo[] = []
   for (const sig of sigList) {
     const swapInfo: SolTrSwapInfo|undefined = await solTrSwapInspect(sig, platform)
-    if (swapInfo && !await dbBotIsBot(swapInfo.who)) {
+    const isBot = swapInfo && await dbBotIsBot(swapInfo.who)
+    const state = !swapInfo ? 'failed transaction' : (isBot ? 'bot' : swapInfo.how)
+    wssSend({
+      cmd: 'transaction',
+      signature: sig,
+      state: state,
+      platform: swapInfo?.where
+    })
+    if (swapInfo && !isBot) {
       // console.log(`[DAVID] adding data to db sig :`, swapInfo.signature)
       // await dbTransactionAdd(swapInfo)
       swapInfoList.push(swapInfo)
@@ -22,7 +30,6 @@ async function processSigList(sigList: string[any], platform: string) {
 
   // 2. bot detection
   let botsCount = 0
-  console.log(`[DAVID] added ${swapInfoList.length} entries to db.`)
   const timestamps = Array.from(new Set(swapInfoList.map((s: SolTrSwapInfo) => s.when.getTime())));
   // console.log(`[DAVID] ++++++++++++++++++++++ timestamps: `, timestamps)
   for (const tm of timestamps) {
@@ -31,7 +38,7 @@ async function processSigList(sigList: string[any], platform: string) {
 
     const itemCounts = _.countBy(walletsInSec);
     const bots = Object.keys(itemCounts).filter(item => itemCounts[item] > 1);
-    console.log(`[DAVID] ::::::: bots = `, bots)
+    // console.log(`[DAVID] ::::::: bots = `, bots)
     for (const bot of bots) {
       await dbBotAdd(bot)
     }
@@ -42,12 +49,14 @@ async function processSigList(sigList: string[any], platform: string) {
   for(const swapInfo of swapInfoList) {
     if (await dbBotIsBot(swapInfo.who)) 
       continue
-    console.log(`[DAVID](${platform}) ::::::: adding transaction to db : ${swapInfo.signature} `)
+    // console.log(`[DAVID](${platform}) ::::::: adding transaction to db : ${swapInfo.signature} `)
     await dbTransactionAdd(swapInfo)
   }
 
+  console.log(`[DAVID] Finished to analyze ${sigList.length} transactions. added ${swapInfoList.length} entries to db.`)
   // send result via websocket
   wssSend({
+    cmd: "siglist",
     platform,
     trCount: sigList.length,
     dbSyncCount: swapInfoList.length,

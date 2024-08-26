@@ -5,7 +5,7 @@ const apiRoute = Router()
 
 apiRoute.get('/raydium', collectRaydiumTransactions)
 
-apiRoute.get('/raydium/summary', queryWalletsSummary)
+apiRoute.get('/summary', queryWalletsSummary)
 apiRoute.get('/fetch', fetchTransactions)
 
 export default apiRoute
