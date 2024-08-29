@@ -129,131 +129,284 @@ export async function dbTransactionInspect(start: number, end: number, numPerPag
   //   }
   // ])
 
-  const transactions = await TransactionModel.aggregate([
-    {
-      // Group by wallet and token to calculate total sell and buy amounts per token
-      $group: {
-        _id: {
-          wallet: "$who",
-          token: "$what"
-        },
-        totalSell: {
-          $sum: {
+  // const transactions = await TransactionModel.aggregate([
+  //   {
+  //     // Group by wallet and token to calculate total sell and buy amounts per token
+  //     $group: {
+  //       _id: {
+  //         wallet: "$who",
+  //         token: "$what"
+  //       },
+  //       totalSell: {
+  //         $sum: {
+  //           $cond: [
+  //             { $eq: ["$how", "sell"] }, // If 'how' is 'sell'
+  //             "$rcvAsset.amount",       // Sum the sentAsset.amount
+  //             0                          // Else, add 0
+  //           ]
+  //         }
+  //       },
+  //       totalBuy: {
+  //         $sum: {
+  //           $cond: [
+  //             { $eq: ["$how", "buy"] },  // If 'how' is 'buy'
+  //             "$sentAsset.amount",        // Sum the rcvAsset.amount
+  //             0                          // Else, add 0
+  //           ]
+  //         }
+  //       },
+  //       numTrades: { $sum: 1 }, // Count the number of trades per wallet/token combination
+  //       lastTradeTime: { $max: "$when" } // Track the latest trade time per wallet/token
+  //     }
+  //   },
+  //   {
+  //     // Determine if each token is a winner or a loss
+  //     $project: {
+  //       wallet: "$_id.wallet",
+  //       token: "$_id.token",
+  //       isWinner: {
+  //         $cond: [
+  //           { $gt: ["$totalSell", "$totalBuy"] }, // If totalSell > totalBuy
+  //           1,                                    // It's a winner
+  //           0                                     // Else, it's a loss
+  //         ]
+  //       },
+  //       numTrades: 1, // Pass through the number of trades
+  //       totalSell: 1,  // Pass through the total sell amount
+  //       totalBuy: 1,    // Pass through the total buy amount
+  //       lastTradeTime: 1 // Pass through the last trade time
+  //     }
+  //   },
+  //   {
+  //     // Group by wallet to aggregate data across all tokens for each wallet
+  //     $group: {
+  //       _id: "$wallet", // Group by wallet
+  //       winnerTokens: { $sum: "$isWinner" }, // Sum the winner tokens
+  //       lossTokens: {
+  //         $sum: {
+  //           $cond: [
+  //             { $eq: ["$isWinner", 0] }, // If not a winner (isWinner = 0)
+  //             1,                         // Count as a loss
+  //             0                          // Else, add 0
+  //           ]
+  //         }
+  //       },
+  //       numTrades: { $sum: "$numTrades" }, // Sum the total number of trades per wallet
+  //       numTokens: { $addToSet: "$token" }, // Count unique tokens per wallet
+  //       totalSpent: { $sum: "$totalBuy" }, // Sum total spent across all tokens
+  //       totalReceive: { $sum: "$totalSell" }, // Sum total received across all tokens
+  //       lastTradeTime: { $max: "$lastTradeTime" } // Track the latest trade time per wallet
+  //     }
+  //   },
+  //   {
+  //     // Final projection to include all the calculated fields
+  //     $project: {
+  //       _id: 0,
+  //       wallet: "$_id",
+  //       winnerTokens: 1,
+  //       lossTokens: 1,
+  //       numTrades: 1,
+  //       numTokens: { $size: "$numTokens" }, // Calculate the number of unique tokens
+  //       totalSpent: { $round: ["$totalSpent", 6] },
+  //       totalReceive: { $round: ["$totalReceive", 6] },
+  //       profit: { $round: [{ $subtract: ["$totalReceive", "$totalSpent"] }, 6] }, // Calculate profit as totalSpent - totalReceive
+  //       winRate: {
+  //         $cond: [
+  //           { $eq: [{ $size: "$numTokens" }, 0] }, // Avoid division by zero
+  //           "N/A",
+  //           { $round: [{ $divide: ["$winnerTokens", { $size: "$numTokens" }] }, 2] } // Calculate winRate as winnerTokens / numTokens
+  //         ]
+  //       },
+  //       roi: {
+  //         $cond: [
+  //           { $eq: ["$totalSpent", 0] }, // Avoid division by zero
+  //           "N/A",
+  //           { $round: [{ $divide: [{ $subtract: ["$totalSpent", "$totalReceive"] }, "$totalSpent"] }, 2] } // Calculate ROI as profit / totalSpent
+  //         ]
+  //       },
+  //       tradesPerToken: {
+  //         $cond: [
+  //           { $eq: [{ $size: "$numTokens" }, 0] }, // Avoid division by zero
+  //           "N/A",
+  //           { $round: [{ $divide: ["$numTrades", { $size: "$numTokens" }] }, 2] } // Calculate tradesPerToken as numTrades / numTokens
+  //         ]
+  //       },
+  //       lastTradeTime: 1 // Include the last trade time
+  //     }
+  //   },
+  //   {
+  //     $sort: { [sortBy]: isDecending ? -1 : 1 }
+  //   },
+  //   {
+  //     // Pagination: Skip the documents to reach the desired page
+  //     $skip: pageNum * numPerPage
+  //   },
+  //   {
+  //     // Limit the results to 100 entries
+  //     $limit: numPerPage
+  //   }
+  // ]);
+
+  const [transactions, totalCount] = await Promise.all([
+    // This part runs the paginated and sorted query
+    TransactionModel.aggregate([
+      {
+        $group: {
+          _id: {
+            wallet: "$who",
+            token: "$what"
+          },
+          totalSell: {
+            $sum: {
+              $cond: [
+                { $eq: ["$how", "sell"] },
+                "$rcvAsset.amount",
+                0
+              ]
+            }
+          },
+          totalBuy: {
+            $sum: {
+              $cond: [
+                { $eq: ["$how", "buy"] },
+                "$sentAsset.amount",
+                0
+              ]
+            }
+          },
+          numTrades: { $sum: 1 },
+          lastTradeTime: { $max: "$when" }
+        }
+      },
+      {
+        $project: {
+          wallet: "$_id.wallet",
+          token: "$_id.token",
+          isWinner: {
             $cond: [
-              { $eq: ["$how", "sell"] }, // If 'how' is 'sell'
-              "$rcvAsset.amount",       // Sum the sentAsset.amount
-              0                          // Else, add 0
+              { $gt: ["$totalSell", "$totalBuy"] },
+              1,
+              0
             ]
-          }
-        },
-        totalBuy: {
-          $sum: {
+          },
+          numTrades: 1,
+          totalSell: 1,
+          totalBuy: 1,
+          lastTradeTime: 1
+        }
+      },
+      {
+        $group: {
+          _id: "$wallet",
+          winnerTokens: { $sum: "$isWinner" },
+          lossTokens: {
+            $sum: {
+              $cond: [
+                { $eq: ["$isWinner", 0] },
+                1,
+                0
+              ]
+            }
+          },
+          numTrades: { $sum: "$numTrades" },
+          numTokens: { $addToSet: "$token" },
+          totalSpent: { $sum: "$totalBuy" },
+          totalReceive: { $sum: "$totalSell" },
+          lastTradeTime: { $max: "$lastTradeTime" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          wallet: "$_id",
+          winnerTokens: 1,
+          lossTokens: 1,
+          numTrades: 1,
+          numTokens: { $size: "$numTokens" },
+          totalSpent: { $round: ["$totalSpent", 6] },
+          totalReceive: { $round: ["$totalReceive", 6] },
+          profit: { $round: [{ $subtract: ["$totalReceive", "$totalSpent"] }, 6] },
+          winRate: {
             $cond: [
-              { $eq: ["$how", "buy"] },  // If 'how' is 'buy'
-              "$sentAsset.amount",        // Sum the rcvAsset.amount
-              0                          // Else, add 0
+              { $eq: [{ $size: "$numTokens" }, 0] },
+              "N/A",
+              { $round: [{ $divide: ["$winnerTokens", { $size: "$numTokens" }] }, 2] }
             ]
-          }
-        },
-        numTrades: { $sum: 1 }, // Count the number of trades per wallet/token combination
-        lastTradeTime: { $max: "$when" } // Track the latest trade time per wallet/token
-      }
-    },
-    {
-      // Determine if each token is a winner or a loss
-      $project: {
-        wallet: "$_id.wallet",
-        token: "$_id.token",
-        isWinner: {
-          $cond: [
-            { $gt: ["$totalSell", "$totalBuy"] }, // If totalSell > totalBuy
-            1,                                    // It's a winner
-            0                                     // Else, it's a loss
-          ]
-        },
-        numTrades: 1, // Pass through the number of trades
-        totalSell: 1,  // Pass through the total sell amount
-        totalBuy: 1,    // Pass through the total buy amount
-        lastTradeTime: 1 // Pass through the last trade time
-      }
-    },
-    {
-      // Group by wallet to aggregate data across all tokens for each wallet
-      $group: {
-        _id: "$wallet", // Group by wallet
-        winnerTokens: { $sum: "$isWinner" }, // Sum the winner tokens
-        lossTokens: {
-          $sum: {
+          },
+          roi: {
             $cond: [
-              { $eq: ["$isWinner", 0] }, // If not a winner (isWinner = 0)
-              1,                         // Count as a loss
-              0                          // Else, add 0
+              { $eq: ["$totalSpent", 0] },
+              "N/A",
+              { $round: [{ $divide: [{ $subtract: ["$totalSpent", "$totalReceive"] }, "$totalSpent"] }, 2] }
             ]
+          },
+          tradesPerToken: {
+            $cond: [
+              { $eq: [{ $size: "$numTokens" }, 0] },
+              "N/A",
+              { $round: [{ $divide: ["$numTrades", { $size: "$numTokens" }] }, 2] }
+            ]
+          },
+          lastTradeTime: 1
+        }
+      },
+      {
+        $sort: { [sortBy]: isDecending ? -1 : 1 }
+      },
+      {
+        $skip: pageNum * numPerPage
+      },
+      {
+        $limit: numPerPage
+      }
+    ]),
+  
+    // This part runs the counting query
+    TransactionModel.aggregate([
+      {
+        $group: {
+          _id: {
+            wallet: "$who",
+            token: "$what"
           }
-        },
-        numTrades: { $sum: "$numTrades" }, // Sum the total number of trades per wallet
-        numTokens: { $addToSet: "$token" }, // Count unique tokens per wallet
-        totalSpent: { $sum: "$totalBuy" }, // Sum total spent across all tokens
-        totalReceive: { $sum: "$totalSell" }, // Sum total received across all tokens
-        lastTradeTime: { $max: "$lastTradeTime" } // Track the latest trade time per wallet
+        }
+      },
+      {
+        $group: {
+          _id: "$_id.wallet",
+        }
+      },
+      {
+        $count: "totalCount"
       }
-    },
-    {
-      // Final projection to include all the calculated fields
-      $project: {
-        _id: 0,
-        wallet: "$_id",
-        winnerTokens: 1,
-        lossTokens: 1,
-        numTrades: 1,
-        numTokens: { $size: "$numTokens" }, // Calculate the number of unique tokens
-        totalSpent: { $round: ["$totalSpent", 6] },
-        totalReceive: { $round: ["$totalReceive", 6] },
-        profit: { $round: [{ $subtract: ["$totalReceive", "$totalSpent"] }, 6] }, // Calculate profit as totalSpent - totalReceive
-        winRate: {
-          $cond: [
-            { $eq: [{ $size: "$numTokens" }, 0] }, // Avoid division by zero
-            "N/A",
-            { $round: [{ $divide: ["$winnerTokens", { $size: "$numTokens" }] }, 2] } // Calculate winRate as winnerTokens / numTokens
-          ]
-        },
-        roi: {
-          $cond: [
-            { $eq: ["$totalSpent", 0] }, // Avoid division by zero
-            "N/A",
-            { $round: [{ $divide: [{ $subtract: ["$totalSpent", "$totalReceive"] }, "$totalSpent"] }, 2] } // Calculate ROI as profit / totalSpent
-          ]
-        },
-        tradesPerToken: {
-          $cond: [
-            { $eq: [{ $size: "$numTokens" }, 0] }, // Avoid division by zero
-            "N/A",
-            { $round: [{ $divide: ["$numTrades", { $size: "$numTokens" }] }, 2] } // Calculate tradesPerToken as numTrades / numTokens
-          ]
-        },
-        lastTradeTime: 1 // Include the last trade time
-      }
-    },
-    {
-      $sort: { [sortBy]: isDecending ? -1 : 1 }
-    },
-    {
-      // Pagination: Skip the documents to reach the desired page
-      $skip: pageNum * numPerPage
-    },
-    {
-      // Limit the results to 100 entries
-      $limit: numPerPage
-    }
+    ])
   ]);
 
-  // console.log(transactions.slice(0, 10))
+  const total = totalCount.length > 0 ? totalCount[0].totalCount : 0;
+  console.log(totalCount)
   // return []
-  return transactions
+  return {tradeResult: transactions, totalCount: total}
 }
 
 export async function dbTrasnactionGetWalletCount() {
-  return await TransactionModel.distinct("who").countDocuments();
+  // return await TransactionModel.distinct("who").countDocuments();
+  const distinctCount = await TransactionModel.aggregate([
+    {
+      // Group by the fields you want to be distinct
+      $group: {
+        _id: {
+          who: "$who",
+          what: "$what"
+        }
+      }
+    },
+    {
+      // Count the number of distinct groups
+      $count: "distinctCount"
+    }
+  ]);
+  const count = distinctCount.length > 0 ? distinctCount[0].distinctCount : 0;
+  return count
 }
 
 export async function dbTransactionEarliestTimestamp() {

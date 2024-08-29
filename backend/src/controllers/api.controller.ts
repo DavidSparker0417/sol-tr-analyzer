@@ -31,7 +31,7 @@ export async function queryWalletsSummary(req: any, res: any) {
   const isDecending = query.isDecending && query.isDecending === 'true' ? true : false
   const numPerPage = Number(query.numPerPage || 100)
   const pageNum = Number(query.page || 0)
-  const tradeResult = await dbTransactionInspect(start, end, numPerPage, pageNum, sortBy, isDecending)
+  const {tradeResult, totalCount} = await dbTransactionInspect(start, end, numPerPage, pageNum, sortBy, isDecending)
   // const swapInfoList = await dbTransactionGetByDuration(start, end)
   // console.log(`[DAVID](API-REQ) queryWalletsSummary :: 1. got list from db. count = ${swapInfoList.length}`)
   // const traders = _.countBy(swapInfoList.map((s: SolTrSwapInfo) => s.who));
@@ -107,7 +107,7 @@ export async function queryWalletsSummary(req: any, res: any) {
   //   resultData = tradeResult
   // }
   // resultData = resultData.slice(page * numPerPage, (page + 1) * numPerPage)
-  res.status(200).send({ message: "ok", data: tradeResult, totalCount: await dbTrasnactionGetWalletCount() })
+  res.status(200).send({ message: "ok", data: tradeResult, totalCount })
 }
 
 export async function fetchTransactions(req: any, res: any) {
