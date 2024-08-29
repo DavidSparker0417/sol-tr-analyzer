@@ -34,7 +34,6 @@ export default function Home() {
   var num_per_page = 100;
 
   const searchedResult = useMemo(() => {
-    console.log(summary[0].wallet)
     return searchWallet ? summary.filter((s: any) => s.wallet.includes(searchWallet)) : summary
   }, [searchWallet, summary])
 
@@ -61,8 +60,11 @@ export default function Home() {
   }
 
   async function fetchAnalyze() {
-    const resp = await axios.get(`${SERVER_URL}/summary`)
-    // console.log(`[DAVID] (fetchTransactions) resp =`, resp)
+    const end = new Date().getTime()
+    const start = end - 3600 * 1000
+    const resp = await axios.get(`${SERVER_URL}/summary?page=0&numPerPage=100&sortBy=numTrades`)
+    // const resp = await axios.get(`${SERVER_URL}/summary?from=${start}&to=${end}&page=0&numPerPage=100&sortBy=winRate`)
+    console.log(`[DAVID] (fetchTransactions) totalCount =`, resp.data.totalCount)
 
     setSummary(resp.data.data)
     setCurPage(0)
