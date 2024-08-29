@@ -23,6 +23,7 @@ body
 	top: 72px;
 	padding-top: 10px;
 	padding-left: 10px;
+	display: none;
 }
 
 #action_area label
@@ -105,6 +106,17 @@ table thead
 table thead th
 {
 	text-align: center;
+	cursor: pointer;
+}
+
+table thead th.asc
+{
+	color: #b96012;
+}
+
+table thead th.desc
+{
+	color: green;
 }
 
 table tbody 
@@ -148,6 +160,8 @@ table dl dd
 	text-align: center;
 	line-height: 30px;
 	margin-right: 10px;
+	font-family: monospace;
+	font-size: 15px;
 }
 
 table tbody h1
@@ -176,6 +190,19 @@ tr.navigation td
 	cursor: pointer;
 }
 
+tr.navigation label
+{
+	float: left;
+	margin-right: 10px;
+}
+
+tr.navigation select
+{
+	float: left;
+	color: black;
+	background: white;
+}
+
 .navigation
 {
 	background-color: transparent !important;
@@ -191,7 +218,6 @@ tr.navigation td
 	left: 100px;
 	position: absolute;
 	margin-top: -15px;
-	display: none;
 }
 
 #search_area label
@@ -270,4 +296,16 @@ tr.navigation td
 	background: green;
 	width: 30%;
 	height: 20px;
+}
+
+#display_count_section
+{
+	position: absolute;
+	right: 0px;
+}
+
+#num_count
+{
+	color: black;
+	width: 50px;
 }

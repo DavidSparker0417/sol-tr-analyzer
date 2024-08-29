@@ -1,7 +1,7 @@
 "use client"
 import axios from "axios";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useCallback, useMemo, useState } from "react";
 import "./style.css";
 import { SERVER_URL } from "@/constants";
 import useTrFetching from "@/hooks/tr-fetch";
@@ -31,10 +31,14 @@ export default function Home() {
   const { fetchedCount, resetFetchCount, transaction } = useTrFetching()
   const [searchWallet, setSearchWallet] = useState("")
   const [totalCount, setTotalCount] = useState(0)
+  const [numPerPage, setNumPerPage] = useState(100)
+
+  const [sortProfit, setSortProfit] = useState("")
+  const [sortWinRate, setSortWinRate] = useState("desc")
 
   let countDownIntervalId: any
-  var num_per_page = 100;
-
+  let dispNumPerPage = 100;
+  
   const searchedResult = useMemo(() => {
     return searchWallet ? summary.filter((s: any) => s.wallet.includes(searchWallet)) : summary
   }, [searchWallet, summary])
@@ -61,11 +65,20 @@ export default function Home() {
     document.getElementById("div_time_range").style.display = "block";
   }
 
-  async function fetchAnalyze(page: number = 1) {
+  useEffect(() => {fetchAnalyze();}, [sortWinRate, sortProfit])
+  
+  const fetchAnalyze = useCallback(async (page: number = 1) => {
     const end = new Date().getTime()
     const start = end - 3600 * 1000
-    const resp = await axios.get(`${SERVER_URL}/summary?page=${page-1}&numPerPage=100&sortBy=winRate&isDecending=true`)
-    console.log(`[DAVID] (fetchTransactions) totalCount =`, resp.data.totalCount)
+    var query = "numPerPage=100";
+
+    if(sortWinRate != "")
+      query = query + "&sortBy=winRate&isDecending=" + (sortWinRate == "desc");
+    else if(sortProfit != "")
+      query = query + "&sortBy=profit&isDecending=" + (sortProfit == "desc");
+
+    const resp = await axios.get(`${SERVER_URL}/summary?page=${page-1}&${query}`)
+
     setTotalCount(resp.data.totalCount)
 
     setSummary(resp.data.data)
@@ -79,7 +92,7 @@ export default function Home() {
 
     document.getElementById("btn_view_analyse").style.display = "none";
     document.getElementById("btn_back_trans").style.display = "block";
-  }
+  }, [summary, curPage, sortWinRate, sortProfit])
 
   async function backToTransaction() {
     document.getElementById("btn_view_analyse").style.display = "block";
@@ -89,6 +102,36 @@ export default function Home() {
     document.getElementById("tbl_analyse").style.display = "none";
     document.getElementById("div_time_range").style.display = "block";
     document.getElementById("div_transaction").style.display = "block";
+  }
+
+  function changeClassSort(target)
+  {
+    var prev_asc  = document.getElementsByClassName("asc");
+    var prev_desc = document.getElementsByClassName("desc");
+    var new_class = "";
+
+    if(target.classList[0])
+    {
+      new_class = (target.classList[0] == "desc") ? "asc" : "desc"
+    }
+    else
+    {
+      if(prev_asc[0])
+      {
+        prev_asc[0].removeAttribute("class");
+      }
+      else if(prev_desc[0])
+      {
+        prev_desc[0].removeAttribute("class");
+      }
+
+      new_class = "asc";
+    }
+
+    if(!target.className)
+      target.className = "asc";
+
+    return new_class;
   }
 
   return (
@@ -136,8 +179,20 @@ export default function Home() {
             <th width="7%">Num Tokens</th>
             <th width="9%">Total Spent</th>
             <th width="9%">Total Receive</th>
-            <th width="10%">Profit</th>
-            <th width="5%">Win Rate</th>
+            <th width="10%" class={sortProfit} onClick= {({ target }) => { 
+                var className = changeClassSort(target);
+
+                setSortProfit(className); 
+                setSortWinRate(""); 
+                // fetchAnalyze(1);
+            }}>Profit</th>
+            <th width="5%" class={sortWinRate} onClick= {({ target }) => { 
+              var className = changeClassSort(target);
+
+              setSortWinRate(className); 
+              setSortProfit(""); 
+              // fetchAnalyze(1);
+            }}>Win Rate</th>
             <th width="7%">ROI</th>
             <th width="6%">Trd / Wallet</th>
             <th width="10%">Last Trade Time</th>
@@ -165,29 +220,30 @@ export default function Home() {
           <div></div>
           <tr class="navigation">
             <td colspan="11">
-              <dl>
-                {
-                  ((new Array(Math.ceil(totalCount / num_per_page))).fill(0))
-                    .map((a, i) =>
-                      <dd key={i}
-                        onClick={({ target }) => {
+              <label>Page Number: </label>
+              <select onChange={({ target }) => {
                           // console.log(`[DAVID] ev =`, target.innerText)
-                          // console.log(target);
+                    // console.log(target);
 
-                          var prev_sel = document.getElementsByClassName("nav_selected");
+                    var prev_sel = document.getElementsByClassName("nav_selected");
 
-                          if (prev_sel[0])
-                            prev_sel[0].classList.remove("nav_selected");
+                    if (prev_sel[0])
+                      prev_sel[0].classList.remove("nav_selected");
 
-                          target.classList.add("nav_selected");
-                          const page = Number(target.innerText)
-                          setCurPage(page)
-                          fetchAnalyze(page)
-                        }}>
+                    target.classList.add("nav_selected");
+
+                    const page = Number(target.value)
+                    setCurPage(page)
+                    fetchAnalyze(page)
+                  }}>
+                {
+                  ((new Array(Math.ceil(totalCount / numPerPage))).fill(0))
+                    .map((a, i) =>
+                      <option key={i}>
                         {i + 1}
-                      </dd>)
+                      </option>)
                 }
-              </dl>
+              </select>
             </td>
           </tr>
         </tbody>
@@ -211,7 +267,7 @@ export default function Home() {
                 <div id="progress_fill"></div>
               </div>
             </div>
-            : <h1>Please click on Fetch button to get data</h1>
+            : <h1>Data is Loading now. Please wait ...</h1>
         }
       </div>
     </main>
