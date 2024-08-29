@@ -36,7 +36,7 @@ export async function dbTransactionGetByDuration(start: number, end: number) {
   return transactions
 }
 
-export async function dbTransactionInspect(start: number, end: number, _sortBy: string | undefined = "profit", isDecending: boolean = true) {
+export async function dbTransactionInspect(start: number, end: number, numPerPage: number = 100, pageNum: number = 0, _sortBy: string | undefined = "profit", isDecending: boolean = true) {
   const startTime = new Date(start)
   const endTime = new Date(end)
 
@@ -236,11 +236,14 @@ export async function dbTransactionInspect(start: number, end: number, _sortBy: 
     },
     {
       $sort: { [sortBy]: isDecending ? -1 : 1 }
-      // $sort: { ['numTrades']: isDecending ? 1 : -1 }
+    },
+    {
+      // Pagination: Skip the documents to reach the desired page
+      $skip: pageNum * numPerPage
     },
     {
       // Limit the results to 100 entries
-      $limit: 100
+      $limit: numPerPage
     }
   ]);
 
