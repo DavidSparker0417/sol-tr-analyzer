@@ -26,10 +26,12 @@ function formatTimeFromMicroseconds(microseconds: number): string {
 export default function Home() {
   const [summary, setSummary] = useState([])
   const [fetching, setFetching] = useState(false)
-  const [curPage, setCurPage] = useState(0)
+  const [curPage, setCurPage] = useState(1)
   const [totalTrCount, setTotalTrCount] = useState(0)
   const { fetchedCount, resetFetchCount, transaction } = useTrFetching()
   const [searchWallet, setSearchWallet] = useState("")
+  const [totalCount, setTotalCount] = useState(0)
+
   let countDownIntervalId: any
   var num_per_page = 100;
 
@@ -59,15 +61,15 @@ export default function Home() {
     document.getElementById("div_time_range").style.display = "block";
   }
 
-  async function fetchAnalyze() {
+  async function fetchAnalyze(page: number = 1) {
     const end = new Date().getTime()
     const start = end - 3600 * 1000
-    const resp = await axios.get(`${SERVER_URL}/summary?page=${curPage}&numPerPage=100&sortBy=numTrades&isDecending=true`)
-    // const resp = await axios.get(`${SERVER_URL}/summary?from=${start}&to=${end}&page=0&numPerPage=100&sortBy=winRate`)
+    const resp = await axios.get(`${SERVER_URL}/summary?page=${page-1}&numPerPage=100&sortBy=numTrades&isDecending=true`)
     console.log(`[DAVID] (fetchTransactions) totalCount =`, resp.data.totalCount)
+    setTotalCount(resp.data.totalCount)
 
     setSummary(resp.data.data)
-    setCurPage(0)
+    setCurPage(page)
 
     document.getElementById("search_area").style.display = "block";
     document.getElementById("tbl_analyse").style.display = "inline-grid";
@@ -99,7 +101,7 @@ export default function Home() {
           <input type="calendar" id="txt_end"></input>
           <input type="button" id="btn_get_result" onClick={() => fetchTransactions()} value="Fetch Data"></input>
         </div>
-        <input type="button" id="btn_view_analyse" onClick={() => fetchAnalyze()} value="Analyse"></input>
+        <input type="button" id="btn_view_analyse" onClick={() => fetchAnalyze(1)} value="Analyse"></input>
         <input type="button" id="btn_back_trans" onClick={() => backToTransaction()} value="Back"></input>
       </div>
 
@@ -143,10 +145,7 @@ export default function Home() {
         </thead>
         <tbody>
           {
-            searchedResult.slice(
-              curPage * num_per_page,
-              (curPage + 1) * num_per_page > summary.length ? -1 : (curPage + 1) * num_per_page)
-              .map((t: any, i: number) => {
+            searchedResult.map((t: any, i: number) => {
                 return (<tr>
                   <td width="3%">{i + 1}</td>
                   <td width="20%">{t.wallet}</td>
@@ -168,7 +167,7 @@ export default function Home() {
             <td colspan="11">
               <dl>
                 {
-                  ((new Array(Math.ceil(searchedResult.length / num_per_page))).fill(0))
+                  ((new Array(Math.ceil(totalCount / num_per_page))).fill(0))
                     .map((a, i) =>
                       <dd key={i}
                         onClick={({ target }) => {
@@ -181,7 +180,9 @@ export default function Home() {
                             prev_sel[0].classList.remove("nav_selected");
 
                           target.classList.add("nav_selected");
-                          setCurPage(Number(target.innerText))
+                          const page = Number(target.innerText)
+                          setCurPage(page)
+                          fetchAnalyze(page)
                         }}>
                         {i + 1}
                       </dd>)

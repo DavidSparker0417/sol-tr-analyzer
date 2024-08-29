@@ -113,7 +113,7 @@ export async function queryWalletsSummary(req: any, res: any) {
 export async function fetchTransactions(req: any, res: any) {
   const { from, to } = req.query
   console.log(`[DAVID](API-REQ) fetchTransactions :: query = ${JSON.stringify(req.query)}`)
-  res.status(200).send({ message: "ok", trCount: 0 })
+  return res.status(200).send({ message: "ok", trCount: 0 })
   let start = Number(from), end = Number(to)
   if (!start || !end) {
     end = getCurrentTimestamp()
