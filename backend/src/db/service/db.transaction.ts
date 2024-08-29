@@ -383,7 +383,7 @@ export async function dbTransactionInspect(start: number, end: number, numPerPag
   ]);
 
   const total = totalCount.length > 0 ? totalCount[0].totalCount : 0;
-  console.log(totalCount)
+  // console.log(totalCount)
   // return []
   return {tradeResult: transactions, totalCount: total}
 }
