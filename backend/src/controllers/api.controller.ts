@@ -28,7 +28,8 @@ export async function queryWalletsSummary(req: any, res: any) {
     start = end - 3600 * 1000
   }
   const sortBy = query.sortBy || 'numTrades'
-  const tradeResult = await dbTransactionInspect(start, end, sortBy)
+  const isDecending = query.isDecending && query.isDecending === 'true' ? true : false
+  const tradeResult = await dbTransactionInspect(start, end, sortBy, isDecending)
   // const swapInfoList = await dbTransactionGetByDuration(start, end)
   // console.log(`[DAVID](API-REQ) queryWalletsSummary :: 1. got list from db. count = ${swapInfoList.length}`)
   // const traders = _.countBy(swapInfoList.map((s: SolTrSwapInfo) => s.who));

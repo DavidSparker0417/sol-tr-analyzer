@@ -62,7 +62,7 @@ export default function Home() {
   async function fetchAnalyze() {
     const end = new Date().getTime()
     const start = end - 3600 * 1000
-    const resp = await axios.get(`${SERVER_URL}/summary?page=0&numPerPage=100&sortBy=numTrades`)
+    const resp = await axios.get(`${SERVER_URL}/summary?page=0&numPerPage=100&sortBy=numTrades&isDecending=true`)
     // const resp = await axios.get(`${SERVER_URL}/summary?from=${start}&to=${end}&page=0&numPerPage=100&sortBy=winRate`)
     console.log(`[DAVID] (fetchTransactions) totalCount =`, resp.data.totalCount)
 
