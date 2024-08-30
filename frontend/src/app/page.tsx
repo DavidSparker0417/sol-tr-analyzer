@@ -35,6 +35,13 @@ export default function Home() {
 
   const [sortProfit, setSortProfit] = useState("")
   const [sortWinRate, setSortWinRate] = useState("desc")
+  const [sortNumTrades, setSortNumTrades] = useState("")
+  const [sortNumTokens, setSortNumTokens] = useState("")
+  const [sortTotalSpent, setSortTotalSpent] = useState("")
+  const [sortTotalReceive, setSortTotalReceive] = useState("")
+  const [sortTradesPerToken, setSortTradesPerToken] = useState("")
+  const [sortLastTradeTime, setSortLastTradeTime] = useState("")
+  const [sortROI, setSortROI] = useState("")
 
   let countDownIntervalId: any
   let dispNumPerPage = 100;
@@ -65,7 +72,7 @@ export default function Home() {
     document.getElementById("div_time_range").style.display = "block";
   }
 
-  useEffect(() => {fetchAnalyze();}, [sortWinRate, sortProfit])
+  useEffect(() => {fetchAnalyze();}, [sortWinRate, sortProfit, sortNumTrades, sortNumTokens, sortTotalSpent, sortTotalReceive, sortTradesPerToken, sortROI, sortLastTradeTime])
   
   const fetchAnalyze = useCallback(async (page: number = 1) => {
     const end = new Date().getTime()
@@ -76,6 +83,22 @@ export default function Home() {
       query = query + "&sortBy=winRate&isDecending=" + (sortWinRate == "desc");
     else if(sortProfit != "")
       query = query + "&sortBy=profit&isDecending=" + (sortProfit == "desc");
+    else if(sortNumTrades != "")
+      query = query + "&sortBy=numTrades&isDecending=" + (sortNumTrades == "desc");
+    else if(sortNumTokens != "")
+      query = query + "&sortBy=numTokens&isDecending=" + (sortNumTokens == "desc");
+    else if(sortTotalSpent != "")
+      query = query + "&sortBy=totalSpent&isDecending=" + (sortTotalSpent == "desc");
+    else if(sortTotalReceive != "")
+      query = query + "&sortBy=totalReceive&isDecending=" + (sortTotalReceive == "desc");
+    else if(sortTradesPerToken != "")
+      query = query + "&sortBy=tradesPerToken&isDecending=" + (sortTradesPerToken == "desc");
+    else if(sortROI != "")
+      query = query + "&sortBy=roi&isDecending=" + (sortROI == "desc");
+    else if(sortLastTradeTime != "")
+      query = query + "&sortBy=lastTradeTime&isDecending=" + (sortLastTradeTime == "desc");
+
+console.log(query);
 
     const resp = await axios.get(`${SERVER_URL}/summary?page=${page-1}&${query}`)
 
@@ -92,7 +115,7 @@ export default function Home() {
 
     document.getElementById("btn_view_analyse").style.display = "none";
     document.getElementById("btn_back_trans").style.display = "block";
-  }, [summary, curPage, sortWinRate, sortProfit])
+  }, [summary, curPage, sortWinRate, sortProfit, sortNumTrades, sortNumTokens, sortTotalSpent, sortTotalReceive, sortTradesPerToken, sortROI, sortLastTradeTime])
 
   async function backToTransaction() {
     document.getElementById("btn_view_analyse").style.display = "block";
@@ -175,27 +198,105 @@ export default function Home() {
           <tr>
             <th width="3%">No</th>
             <th width="20%">Wallet</th>
-            <th width="10%">Num Trades</th>
-            <th width="7%">Num Tokens</th>
-            <th width="9%">Total Spent</th>
-            <th width="9%">Total Receive</th>
-            <th width="10%" class={sortProfit} onClick= {({ target }) => { 
-                var className = changeClassSort(target);
-
-                setSortProfit(className); 
+            <th width="10%" class={sortNumTrades} onClick= {({ target }) => { 
+                setSortNumTrades(changeClassSort(target));
+                setSortProfit(""); 
                 setSortWinRate(""); 
-                // fetchAnalyze(1);
+                setSortNumTokens("");
+                setSortTotalSpent("");
+                setSortTotalReceive("");
+                setSortTradesPerToken("");
+                setSortROI("");
+                setSortLastTradeTime("");
+            }}>Num Trades</th>
+            <th width="7%" class={sortNumTokens} onClick= {({ target }) => { 
+                setSortNumTrades("");
+                setSortProfit(""); 
+                setSortWinRate(""); 
+                setSortNumTokens(changeClassSort(target));
+                setSortTotalSpent("");
+                setSortTotalReceive("");
+                setSortTradesPerToken("");
+                setSortROI("");
+                setSortLastTradeTime("");
+            }}>Num Tokens</th>
+            <th width="9%" class={sortTotalSpent} onClick= {({ target }) => { 
+                setSortNumTrades("");
+                setSortProfit(""); 
+                setSortWinRate(""); 
+                setSortNumTokens("");
+                setSortTotalSpent(changeClassSort(target));
+                setSortTotalReceive("");
+                setSortTradesPerToken("");
+                setSortROI("");
+                setSortLastTradeTime("");
+            }}>Total Spent</th>
+            <th width="9%" class={sortTotalReceive} onClick= {({ target }) => { 
+                setSortNumTrades("");
+                setSortProfit(""); 
+                setSortWinRate(""); 
+                setSortNumTokens("");
+                setSortTotalSpent("");
+                setSortTotalReceive(changeClassSort(target));
+                setSortTradesPerToken("");
+                setSortROI("");
+                setSortLastTradeTime("");
+            }}>Total Receive</th>
+            <th width="10%" class={sortProfit} onClick= {({ target }) => { 
+                setSortProfit(changeClassSort(target)); 
+                setSortWinRate(""); 
+                setSortNumTrades("");
+                setSortNumTokens("");
+                setSortTotalSpent("");
+                setSortTotalReceive("");
+                setSortTradesPerToken("");
+                setSortROI("");
+                setSortLastTradeTime("");
             }}>Profit</th>
             <th width="5%" class={sortWinRate} onClick= {({ target }) => { 
-              var className = changeClassSort(target);
-
-              setSortWinRate(className); 
+              setSortWinRate(changeClassSort(target)); 
               setSortProfit(""); 
-              // fetchAnalyze(1);
+              setSortNumTrades("");
+              setSortNumTokens("");
+              setSortTotalSpent("");
+              setSortTotalReceive("");
+              setSortTradesPerToken("");
+              setSortROI("");
+              setSortLastTradeTime("");
             }}>Win Rate</th>
-            <th width="7%">ROI</th>
-            <th width="6%">Trd / Wallet</th>
-            <th width="10%">Last Trade Time</th>
+            <th width="7%" class={sortROI} onClick= {({ target }) => { 
+              setSortWinRate(""); 
+              setSortProfit(""); 
+              setSortNumTrades("");
+              setSortNumTokens("");
+              setSortTotalSpent("");
+              setSortTotalReceive("");
+              setSortTradesPerToken("");
+              setSortROI(changeClassSort(target));
+              setSortLastTradeTime("");
+            }}>ROI</th>
+            <th width="6%" class={sortTradesPerToken} onClick= {({ target }) => { 
+              setSortWinRate(""); 
+              setSortProfit(""); 
+              setSortNumTrades("");
+              setSortNumTokens("");
+              setSortTotalSpent("");
+              setSortTotalReceive("");
+              setSortTradesPerToken(changeClassSort(target));
+              setSortROI("");
+              setSortLastTradeTime("");
+            }}>Trd / Token</th>
+            <th width="10%" class={sortLastTradeTime} onClick= {({ target }) => { 
+              setSortWinRate(""); 
+              setSortProfit(""); 
+              setSortNumTrades("");
+              setSortNumTokens("");
+              setSortTotalSpent("");
+              setSortTotalReceive("");
+              setSortTradesPerToken("");
+              setSortROI("");
+              setSortLastTradeTime(changeClassSort(target));
+            }}>Last Trade Time</th>
           </tr>
         </thead>
         <tbody>
